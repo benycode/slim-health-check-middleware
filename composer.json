@@ -1,0 +1,22 @@
+{
+    "name": "benycode/slim-health-check-middleware",
+    "description": "Slim 4 health-check endpoint middleware",
+    "keywords": ["Slim 4","request","middleware","health", "check", "endpoint"],
+    "type": "library",
+    "authors": [
+        {
+            "name": "Benycode"
+        }
+    ],
+    "require": {
+        "php": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "BenyCode\\Slim\\HealthCheckEndpointMiddleware\\": "src"
+        }
+    },
+	"config": {
+        "preferred-install": "dist"
+    }
+}
