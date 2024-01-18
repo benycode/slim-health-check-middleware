@@ -20,7 +20,7 @@ final class HealthCheckEndpointMiddleware implements MiddlewareInterface
         ;
  
         if ('/_health' === $uri) {
-            $response = new Response;
+            $response = new Response();
             $response
                 ->getBody()
                 ->write('OK')
