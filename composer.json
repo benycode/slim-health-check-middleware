@@ -1,7 +1,7 @@
 {
-    "name": "benycode/slim-health-check-middleware",
-    "description": "Slim 4 health-check endpoint middleware",
-    "keywords": ["Slim 4","request","middleware","health", "check", "endpoint"],
+    "name": "benycode/slim-middleware",
+    "description": "Slim 4 middleware package",
+    "keywords": ["Slim 4", "middleware", "package"],
     "type": "library",
     "authors": [
         {
@@ -13,7 +13,7 @@
     },
     "autoload": {
         "psr-4": {
-            "BenyCode\\Slim\\HealthCheckEndpointMiddleware\\": "src"
+            "BenyCode\\Slim\\Middleware\\": "src"
         }
     },
 	"config": {
