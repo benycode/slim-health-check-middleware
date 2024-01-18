@@ -21,19 +21,19 @@ final class HealthCheckEndpointMiddleware implements MiddlewareInterface
         if ($uri === '/_health') {
             $response = $handler
                 ->handle($request)
-				;
+		;
 
             return $response
                 ->withStatus(200)
                 ->withJson(
-					[
-						'status' => 'OK',
-					]
+			[
+				'status' => 'OK',
+			]
 		    	);
         }
 
         return $handler
-			->handle($request)
-			;
+		->handle($request)
+		;
     }
 }
