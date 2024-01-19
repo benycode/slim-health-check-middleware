@@ -5,7 +5,8 @@ A Slim 4 Framework useful middlewares.
 ## Features
 
 - health check endpoint;
-- info endpoint.
+- info endpoint;
+- settings setup.
 
 ## Table of contents
 
@@ -29,6 +30,7 @@ Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the l
 ```php
 use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
 use BenyCode\Slim\Middleware\InfoEndpointMiddleware;
+use BenyCode\Slim\Middleware\SettingsUpMiddleware;
 
 return [
     ......
@@ -38,10 +40,13 @@ return [
     InfoEndpointMiddleware::class => function (ContainerInterface $container) {
         return new InfoEndpointMiddleware(<<inject version var>>);
     },
+    SettingsUpMiddleware::class => function (ContainerInterface $container) {
+        return new SettingsUpMiddleware([<<inject settings>>]);
+    },
 ];
 ```
 
-add a **Middlewares** to `any` route at the end of the routes:
+add the **Middlewares** to `any` route at the end of the routes:
 
 ```php
 use BenyCode\Slim\RequestLoggerMiddleware\RequestLogMiddleware;
@@ -66,3 +71,25 @@ $app
 welcome, your app is within new paths:
 - /_health
 - /_info
+
+add the **Middlewares** to a `global`:
+
+```php
+use BenyCode\Middleware\SettingsUpMiddleware;
+
+return function (App $app) {
+	...
+	$app->add(SettingsUpMiddleware::class);
+};
+```
+
+get the settings:
+
+```php
+protected function response(ServerRequestInterface $request, ResponseInterface $response, string $template): ResponseInterface {
+   $settings = $request
+      ->getAttribute('settings')
+   ;
+}
+```
+
