@@ -1,6 +1,6 @@
 # Slim Middleware bundle
 
-A Slim 4 Framework middleware list.
+A Slim 4 Framework useful middlewares.
 
 ## Features
 
