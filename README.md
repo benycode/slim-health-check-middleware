@@ -86,7 +86,7 @@ return function (App $app) {
 get the settings:
 
 ```php
-protected function response(ServerRequestInterface $request, ResponseInterface $response, string $template): ResponseInterface {
+protected function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
    $settings = $request
       ->getAttribute('settings')
    ;
