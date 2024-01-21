@@ -6,7 +6,8 @@ A Slim 4 Framework useful middlewares.
 
 - health check endpoint;
 - info endpoint;
-- settings setup.
+- settings setup;
+- exception handler.
 
 ## Table of contents
 
@@ -43,6 +44,15 @@ return [
     SettingsUpMiddleware::class => function (ContainerInterface $container) {
         return new SettingsUpMiddleware([<<inject settings>>]);
     },
+    ExceptionMiddleware::class => function (ContainerInterface $container) {
+        $settings = <<get settings>>;
+
+        return new ExceptionMiddleware(
+            $container->get(<<ResponseFactoryInterface::class>>),
+            $container->get(<<LoggerInterface::class>>),
+            (bool)$settings['<<display_error_details>>'],
+        );
+    },
 ];
 ```
 
@@ -76,10 +86,13 @@ add the **Middlewares** to a `global`:
 
 ```php
 use BenyCode\Middleware\SettingsUpMiddleware;
+use BenyCode\Slim\Middleware\ExceptionMiddleware;
 
 return function (App $app) {
 	...
 	$app->add(SettingsUpMiddleware::class);
+        ...
+        $app->add(ExceptionMiddleware::class);
 };
 ```
 
