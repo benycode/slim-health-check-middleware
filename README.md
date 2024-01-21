@@ -32,6 +32,7 @@ Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the l
 use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
 use BenyCode\Slim\Middleware\InfoEndpointMiddleware;
 use BenyCode\Slim\Middleware\SettingsUpMiddleware;
+use BenyCode\Slim\Middleware\ExceptionMiddleware;
 
 return [
     ......
