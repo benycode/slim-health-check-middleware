@@ -154,7 +154,7 @@ You can use it with:
 - k8s health check;
 - and more others....
 
-Requires: HealthCheckMiddleware and docker/k8s mechanism.
+Requires: HealthCheckMiddleware, curl and docker/k8s mechanism.
 
 Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
 
