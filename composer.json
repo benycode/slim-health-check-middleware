@@ -1,7 +1,7 @@
 {
     "name": "benycode/slim-middleware",
     "description": "Slim 4 middleware package",
-    "keywords": ["Slim 4", "middleware", "package"],
+    "keywords": ["Slim 4", "middleware", "package", "APISIX", "error handler", "health check"],
     "type": "library",
     "authors": [
         {
