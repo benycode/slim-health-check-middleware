@@ -147,14 +147,14 @@ welcome, your app is within new error handler.
 
 ## APISIX auto route register usage
 
-Idea: Auto create service and load on the health check procedure.
+Idea: Auto create service and routes on the health check procedure.
 
 You can use it with:
 - Docker health check;
 - k8s health check;
 - and more others....
 
-Requires: HealthCheckMiddleware.
+Requires: HealthCheckMiddleware and docker/k8s mechanism.
 
 Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
 
@@ -213,4 +213,4 @@ $app
    ;
 ```
 
-welcome, your app endpoint will be registered on the every health check.
+welcome, your app will be auto registered in the APISIX on the every health check.
