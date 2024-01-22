@@ -7,12 +7,17 @@ A Slim 4 Framework useful middlewares.
 - health check endpoint;
 - info endpoint;
 - settings setup;
-- exception handler.
+- exception handler;
+- APISIX auto route register.
 
 ## Table of contents
 
 - [Install](#install)
-- [Usage](#usage)
+- [Health check endpoint usage](#Health check endpoint usage)
+- [Info endpoint usage](#Info endpoint usage)
+- [Settings setup usage](#Settings setup usage)
+- [Exception handler usage](#Exception handler usage)
+- [APISIX auto route register usage](#APISIX auto route register usage)
 
 ## Install
 
@@ -24,47 +29,27 @@ $ composer require benycode/slim-middleware
 
 Requires Slim 4.
 
-## Usage
+## Health check endpoint usage
 
 Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
 
 ```php
 use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
-use BenyCode\Slim\Middleware\InfoEndpointMiddleware;
-use BenyCode\Slim\Middleware\SettingsUpMiddleware;
-use BenyCode\Slim\Middleware\ExceptionMiddleware;
 
 return [
     ......
     HealthCheckEndpointMiddleware::class => function (ContainerInterface $container) {
         return new HealthCheckEndpointMiddleware();
     },
-    InfoEndpointMiddleware::class => function (ContainerInterface $container) {
-        return new InfoEndpointMiddleware(<<inject version var>>);
-    },
-    SettingsUpMiddleware::class => function (ContainerInterface $container) {
-        return new SettingsUpMiddleware([<<inject settings>>]);
-    },
-    ExceptionMiddleware::class => function (ContainerInterface $container) {
-        $settings = <<get settings>>;
-
-        return new ExceptionMiddleware(
-            $container->get(<<ResponseFactoryInterface::class>>),
-            $container->get(<<LoggerInterface::class>>),
-            (bool)$settings['<<display_error_details>>'],
-        );
-    },
+    ......
 ];
 ```
 
-add the **Middlewares** to `any` route at the end of the routes:
+add the **Middleware** to `any` route at the end of the routes:
 
 ```php
-use BenyCode\Slim\RequestLoggerMiddleware\RequestLogMiddleware;
-use BenyCode\Slim\RequestLoggerMiddleware\ResponseLogMiddleware;
 use Slim\Exception\HttpNotFoundException;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
+use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
 
 $app
    ->get(
@@ -73,27 +58,64 @@ $app
       throw new HttpNotFoundException($request);
    }
    )
+   ....
    ->add(HealthCheckEndpointMiddleware::class)
+   ->setName('any')
+   ;
+```
+
+welcome, your app is within new path:
+- /_health
+
+## Info endpoint usage
+
+Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
+
+```php
+use BenyCode\Slim\Middleware\InfoEndpointMiddleware;
+
+return [
+    ......
+    InfoEndpointMiddleware::class => function (ContainerInterface $container) {
+        return new InfoEndpointMiddleware(<<inject version var>>);
+    },
+    ......
+];
+```
+
+add the **Middleware** to `any` route at the end of the routes:
+
+```php
+use Slim\Exception\HttpNotFoundException;
+use BenyCode\Slim\Middleware\InfoEndpointMiddleware;
+
+$app
+   ->get(
+   '/{any:.*}',
+   function (Request $request, Response $response) {
+      throw new HttpNotFoundException($request);
+   }
+   )
+   ....
    ->add(InfoEndpointMiddleware::class)
    ->setName('any')
    ;
 ```
 
-welcome, your app is within new paths:
-- /_health
+welcome, your app is within new path:
 - /_info
 
-add the **Middlewares** to a `global`:
+## Settings setup usage
+
+add the **Middleware** to a `global` list:
 
 ```php
 use BenyCode\Middleware\SettingsUpMiddleware;
-use BenyCode\Slim\Middleware\ExceptionMiddleware;
 
 return function (App $app) {
-	...
-	$app->add(SettingsUpMiddleware::class);
         ...
-        $app->add(ExceptionMiddleware::class);
+        $app->add(SettingsUpMiddleware::class);
+        ...
 };
 ```
 
@@ -107,3 +129,88 @@ protected function __invoke(ServerRequestInterface $request, ResponseInterface $
 }
 ```
 
+## Exception handler usage
+
+add the **Middleware** to a `global` list:
+
+```php
+use BenyCode\Middleware\ExceptionMiddleware;
+
+return function (App $app) {
+        ...
+        $app->add(ExceptionMiddleware::class);
+        ...
+};
+```
+
+welcome, your app is within new error handler.
+
+## APISIX auto route register usage
+
+Idea: Auto create service and load on the health check procedure.
+
+You can use it with:
+- Docker health check;
+- k8s health check;
+- and more others....
+
+Requires: HealthCheckMiddleware.
+
+Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
+
+```php
+use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
+
+return [
+    ......
+    HealthCheckEndpointMiddleware::class => function (ContainerInterface $container) {
+        return new HealthCheckEndpointMiddleware();
+    },
+    APISIXRegisterMiddleware::class => function (ContainerInterface $container) {
+       return new APISIXRegisterMiddleware(
+       [
+          'service_id' => '<<describe your service name>>',
+          'service' => [
+             'upstream' => [
+                'type' => 'roundrobin',
+                'nodes' => [
+                   '<<describe working endpoint>>:<<describe working port>>' => 1, // example: books-microservice:80
+                ],
+             ],
+          ],
+          'route' => [
+             'uri' => "<<describe working path>>", // example: /books/*
+             'service_id' => '<<describe service id>>', // example: books-microservice
+          ],
+          'api_admin_secret' => '<<describe APISIX admin secret>>',
+          'api_endpoint' => '<<describe APISIX API endpoint url>>', // example: http://api-gateway:9180
+        ],
+	<<inject you PSR7 logger if needed>>,
+        );
+    },
+    ......
+];
+```
+
+add the **Middleware** to `any` route at the end of the routes:
+
+```php
+use Slim\Exception\HttpNotFoundException;
+use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
+use BenyCode\Slim\Middleware\APISIXRegisterMiddleware;
+
+$app
+   ->get(
+   '/{any:.*}',
+   function (Request $request, Response $response) {
+      throw new HttpNotFoundException($request);
+   }
+   )
+   ....
+   ->add(HealthCheckEndpointMiddleware::class)
+   ->add(APISIXRegisterMiddleware::class)
+   ->setName('any')
+   ;
+```
+
+welcome, your app endpoint will be registered on the every health check.
