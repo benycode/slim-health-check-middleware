@@ -213,4 +213,4 @@ $app
    ;
 ```
 
-welcome, your app will be auto registered in the APISIX on the every health check.
+welcome, your app will be auto (re)registered in the APISIX on the every health check.
