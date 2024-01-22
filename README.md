@@ -13,11 +13,11 @@ A Slim 4 Framework useful middlewares.
 ## Table of contents
 
 - [Install](#install)
-- [Health check endpoint usage](#Health check endpoint usage)
-- [Info endpoint usage](#Info endpoint usage)
-- [Settings setup usage](#Settings setup usage)
-- [Exception handler usage](#Exception handler usage)
-- [APISIX auto route register usage](#APISIX auto route register usage)
+- [Health check endpoint usage](#health check endpoint usage)
+- [Info endpoint usage](#info endpoint usage)
+- [Settings setup usage](#settings setup usage)
+- [Exception handler usage](#exception handler usage)
+- [APISIX auto route register usage](#apisix auto route register usage)
 
 ## Install
 
