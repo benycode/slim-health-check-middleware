@@ -73,6 +73,8 @@ $app
 welcome, your app is within new path:
 - /_health or your defined
 
+create health check.
+
 ## Info endpoint usage
 
 Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
@@ -160,24 +162,21 @@ You can use it with:
 - k8s health check;
 - and more others....
 
-Requires: `HealthCheckMiddleware`, `curl` and `docker/k8s` health check mechanism.
+Requires `curl` and `docker/k8s` health check mechanism.
 
 Balanced with `LeaderElectionMiddleware`, bring more stability and activate one instance registration functionality.
 
 Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
 
 ```php
-use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
 use BenyCode\Slim\Middleware\APISIXRegisterMiddleware;
 
 return [
     ......
-    HealthCheckEndpointMiddleware::class => function (ContainerInterface $container) {
-        return new HealthCheckEndpointMiddleware();
-    },
     APISIXRegisterMiddleware::class => function (ContainerInterface $container) {
        return new APISIXRegisterMiddleware(
        [
+          'health_endpoint' => '/_health', // change if needed other endpoint
           'service_id' => '<<describe your service name>>',
           'service' => [
              'upstream' => [
@@ -205,7 +204,6 @@ add the **Middleware** to `any` route at the end of the routes:
 
 ```php
 use Slim\Exception\HttpNotFoundException;
-use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
 use BenyCode\Slim\Middleware\APISIXRegisterMiddleware;
 
 $app
@@ -216,17 +214,18 @@ $app
    }
    )
    ....
-   ->add(HealthCheckEndpointMiddleware::class)
    ->add(APISIXRegisterMiddleware::class)
    ->setName('any')
    ;
 ```
 
+create health check `/_health` or your defined.
+
 welcome, your app will be auto (re)registered in the APISIX on the every health check.
 
 ## Leader election usage
 
-Idea: in the microservice world can be more then one instance who can execute the relevant commands and there is a need for those commands to be executed only by one.
+Idea: in the microservice world can be more then one instance who can execute the relevant commands and there is a need for those commands to be executed only by one. Vote for the leader using health check mechanizm!
 
 Balanced with the `APISIXRegisterMiddleware`.
 
@@ -235,25 +234,23 @@ You can use it with:
 - k8s health check;
 - and more others....
 
-Requires: `HealthCheckMiddleware`, `curl`, `docker/k8s` health check mechanism and `ETCD`.
+Requires `curl`, `docker/k8s` health check mechanism and `ETCD v3`.
 
 Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
 
 ```php
-use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
 use BenyCode\Slim\Middleware\LeaderElectionMiddleware;
 
 return [
     ......
-    HealthCheckEndpointMiddleware::class => function (ContainerInterface $container) {
-        return new HealthCheckEndpointMiddleware();
-    },
     LeaderElectionMiddleware::class => function (ContainerInterface $container) {
        return new LeaderElectionMiddleware(
-       [
-        'endpoint' => '<<etcd endpoint>>',
-        'alection_frequency' => 5, // alection frequence in seconds
-	<<inject you PSR7 logger if needed>>,
+          [
+             'health_endpoint' => '/_health', // change if needed other endpoint
+             'etcd_endpoint' => '<<etcd endpoint>>',
+             'alection_frequency' => 5, // alection frequence in seconds
+              <<inject you PSR7 logger if needed>>,
+          ],
         );
     },
     ......
@@ -264,7 +261,6 @@ add the **Middleware** to `any` route at the end of the routes:
 
 ```php
 use Slim\Exception\HttpNotFoundException;
-use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
 use BenyCode\Slim\Middleware\LeaderElectionMiddleware;
 
 $app
@@ -275,7 +271,6 @@ $app
    }
    )
    ....
-   ->add(HealthCheckEndpointMiddleware::class)
    ->add(LeaderElectionMiddleware::class)
    ->setName('any')
    ;
