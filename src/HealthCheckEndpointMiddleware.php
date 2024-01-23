@@ -12,7 +12,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 final class HealthCheckEndpointMiddleware implements MiddlewareInterface
 {
-    private $healthEndpoint = '/_health';
+    private string $healthEndpoint = '/_health';
 
     public function __construct(
         private array $config = [],
