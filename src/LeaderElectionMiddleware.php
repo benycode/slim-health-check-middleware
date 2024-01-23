@@ -14,6 +14,8 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
 {
     private string $idetifier;
  
+    private string $healthEndpoint = '/_health';
+ 
     private string $etcdPreffix = 'slim-leader-election-middleware';
  
     private string $etcdLeaderKey = 'leader';
@@ -28,8 +30,8 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
             throw new \InvalidArgumentException('`alection_frequency` parameter is not defined.');
         }
  
-        if(!isset($config['endpoint'])) {
-            throw new \InvalidArgumentException('`endpoint` parameter is not defined.');
+        if(!isset($config['etcd_endpoint'])) {
+            throw new \InvalidArgumentException('`etcd_endpoint` parameter is not defined.');
         }
  
         $this->idetifier = \gethostname();
@@ -40,7 +42,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
         $ch = \curl_init(
             \sprintf(
                 '%s%s',
-                $this->config['endpoint'],
+                $this->config['etcd_endpoint'],
                 $endpointSuffix,
             ),
         );
@@ -104,7 +106,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
         $ch = \curl_init(
             \sprintf(
                 '%s%s',
-                $this->config['endpoint'],
+                $this->config['etcd_endpoint'],
                 $endpointSuffix,
             ),
         );
@@ -164,7 +166,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
         $ch = \curl_init(
             \sprintf(
                 '%s%s',
-                $this->config['endpoint'],
+                $this->config['etcd_endpoint'],
                 $endpointSuffix,
             ),
         );
@@ -227,7 +229,11 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
             ->getPath()
         ;
  
-        if ('/_health' === $uri) {
+        if(isset($this->config['health_endpoint'])) {
+            $this->healthEndpoint = $this->config['health_endpoint'];
+        }
+ 
+        if ($this->healthEndpoint === $uri) {
  
             $this
                 ->info('Leader election procedure started.')
