@@ -41,7 +41,11 @@ use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
 return [
     ......
     HealthCheckEndpointMiddleware::class => function (ContainerInterface $container) {
-        return new HealthCheckEndpointMiddleware();
+        return new HealthCheckEndpointMiddleware(
+           [
+              'health_endpoint' => '/_health', // change if needed other endpoint
+           ],
+        );
     },
     ......
 ];
@@ -67,7 +71,7 @@ $app
 ```
 
 welcome, your app is within new path:
-- /_health
+- /_health or your defined
 
 ## Info endpoint usage
 
