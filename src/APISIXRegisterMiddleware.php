@@ -12,6 +12,8 @@ use Psr\Http\Server\RequestHandlerInterface;
  
 final class APISIXRegisterMiddleware implements MiddlewareInterface
 {
+    private string $healthEndpoint = '/_health';
+ 
     public function __construct(
         private array $config = [],
         private ?LoggerInterface $logger = null,
@@ -44,7 +46,11 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
             ->getPath()
         ;
  
-        if ('/_health' === $uri) {
+        if(isset($this->config['health_endpoint'])) {
+            $this->healthEndpoint = $this->config['health_endpoint'];
+        }
+ 
+        if ($this->healthEndpoint === $uri) {
  
             $this
                 ->info('APISIX registration procedure started.')
