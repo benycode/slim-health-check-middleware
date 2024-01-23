@@ -14,13 +14,11 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
 {
     private string $idetifier;
  
-    private string $etcdPreffix = 'leader-election-middleware';
+    private string $etcdPreffix = 'slim-leader-election-middleware';
  
     private string $etcdLeaderKey = 'leader';
  
     private string $etcdFailoverKey = 'failover';
- 
-    private string $endpoint = 'http://admin-etcd-1:2379/v3';
  
     public function __construct(
         private array $config = [],
@@ -30,35 +28,11 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
             throw new \InvalidArgumentException('`alection_frequency` parameter is not defined.');
         }
  
+        if(!isset($config['endpoint'])) {
+            throw new \InvalidArgumentException('`endpoint` parameter is not defined.');
+        }
+ 
         $this->idetifier = \gethostname();
- 
- 
-        /*$this->client = new \Etcd\Client('admin-etcd-1:2379', 'v3');
- 
-        $data = [
-            'identifier' => \gethostname(),
-            'time' => \time(),
-        ];
- 
- 
-        $this->client->grant(2, 7587822882194199413);
- 
-        //$this->client->revoke(7587822882194199413);
- 
-        $this->client->put('slim-leader-election-middleware/leader', \json_encode($data), ['lease' => 7587822882194199413]);
- 
-        $data = [
-            [
-                'identifier' => \gethostname(),
-                'time' => \time(),
-            ],
-        ];
- 
-        $this->client->put('slim-leader-election-middleware/failover', \json_encode($data));
- 
-        var_dump($this->client->getKeysWithPrefix('slim-leader-election-middleware'));*/
- 
- 
     }
  
     private function isLeaderExists(string $endpointSuffix = '/kv/range') : ?string
@@ -66,7 +40,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
         $ch = \curl_init(
             \sprintf(
                 '%s%s',
-                $this->endpoint,
+                $this->config['endpoint'],
                 $endpointSuffix,
             ),
         );
@@ -130,7 +104,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
         $ch = \curl_init(
             \sprintf(
                 '%s%s',
-                $this->endpoint,
+                $this->config['endpoint'],
                 $endpointSuffix,
             ),
         );
@@ -190,7 +164,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
         $ch = \curl_init(
             \sprintf(
                 '%s%s',
-                $this->endpoint,
+                $this->config['endpoint'],
                 $endpointSuffix,
             ),
         );
