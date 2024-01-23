@@ -8,7 +8,8 @@ A Slim 4 Framework useful middlewares.
 - info endpoint;
 - settings setup;
 - exception handler;
-- APISIX auto route register.
+- APISIX auto route register;
+- Leader election middleware.
 
 ## Table of contents
 
@@ -18,6 +19,7 @@ A Slim 4 Framework useful middlewares.
 - [Settings setup usage](#settings setup usage)
 - [Exception handler usage](#exception handler usage)
 - [APISIX auto route register usage](#apisix auto route register usage)
+- [Leader election usage](#leader election usage)
 
 ## Install
 
@@ -154,12 +156,15 @@ You can use it with:
 - k8s health check;
 - and more others....
 
-Requires: HealthCheckMiddleware, curl and docker/k8s mechanism.
+Requires: `HealthCheckMiddleware`, `curl` and `docker/k8s` health check mechanism.
+
+Balanced with `LeaderElectionMiddleware`, bring more stability and activate one instance registration functionality.
 
 Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
 
 ```php
 use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
+use BenyCode\Slim\Middleware\APISIXRegisterMiddleware;
 
 return [
     ......
@@ -214,3 +219,74 @@ $app
 ```
 
 welcome, your app will be auto (re)registered in the APISIX on the every health check.
+
+## Leader election usage
+
+Idea: in the microservice world can be more then one instance who can execute the relevant commands and there is a need for those commands to be executed only by one.
+
+Balanced with the `APISIXRegisterMiddleware`.
+
+You can use it with:
+- Docker health check;
+- k8s health check;
+- and more others....
+
+Requires: `HealthCheckMiddleware`, `curl`, `docker/k8s` health check mechanism and `ETCD`.
+
+Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
+
+```php
+use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
+use BenyCode\Slim\Middleware\LeaderElectionMiddleware;
+
+return [
+    ......
+    HealthCheckEndpointMiddleware::class => function (ContainerInterface $container) {
+        return new HealthCheckEndpointMiddleware();
+    },
+    LeaderElectionMiddleware::class => function (ContainerInterface $container) {
+       return new LeaderElectionMiddleware(
+       [
+        'endpoint' => '<<etcd endpoint>>',
+        'alection_frequency' => 5, // alection frequence in seconds
+	<<inject you PSR7 logger if needed>>,
+        );
+    },
+    ......
+];
+```
+
+add the **Middleware** to `any` route at the end of the routes:
+
+```php
+use Slim\Exception\HttpNotFoundException;
+use BenyCode\Slim\Middleware\HealthCheckEndpointMiddleware;
+use BenyCode\Slim\Middleware\LeaderElectionMiddleware;
+
+$app
+   ->get(
+   '/{any:.*}',
+   function (Request $request, Response $response) {
+      throw new HttpNotFoundException($request);
+   }
+   )
+   ....
+   ->add(HealthCheckEndpointMiddleware::class)
+   ->add(LeaderElectionMiddleware::class)
+   ->setName('any')
+   ;
+```
+
+get the leader status:
+
+```php
+protected function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
+   $leader = $request
+      ->getAttribute('im_leader')
+   ;
+
+   if($leader) {
+      // the leader code
+   }
+}
+```
