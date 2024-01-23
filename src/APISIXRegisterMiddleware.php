@@ -56,13 +56,24 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
                 ->info('APISIX registration procedure started.')
             ;
  
-            $this
-                ->createService()
+            $leader = $request
+                ->getAttribute('im_leader')
             ;
  
-            $this
-                ->createRoute()
-            ;
+            if(true === $leader) {
+ 
+                $this
+                    ->createService()
+                ;
+ 
+                $this
+                    ->createRoute()
+                ;
+            } else {
+                $this
+                    ->info('I`m not the leader. skipping... Bye.')
+                ;
+            }
  
             $this
                 ->info('APISIX registration procedure ended.')
