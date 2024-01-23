@@ -71,7 +71,7 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
                 ;
             } else {
                 $this
-                    ->info('I`m not the leader. skipping... Bye.')
+                    ->info('I`m not the leader. Bye.')
                 ;
             }
  
