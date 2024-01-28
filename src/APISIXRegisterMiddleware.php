@@ -63,6 +63,10 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
             if(true === $leader) {
  
                 $this
+                    ->info('I`m the leader. Lets register a route!.')
+                ;
+ 
+                $this
                     ->createService()
                 ;
  
