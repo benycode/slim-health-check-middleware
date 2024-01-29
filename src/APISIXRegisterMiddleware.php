@@ -124,7 +124,7 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
             ;
         } else {
  
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $httpCode = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
  
             $this
                 ->info($this->config['service_id'], \sprintf('APISIX responsed with code `%s`', $httpCode))
