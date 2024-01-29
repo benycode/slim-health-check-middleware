@@ -252,7 +252,7 @@ return [
     LeaderElectionMiddleware::class => function (ContainerInterface $container) {
        return new LeaderElectionMiddleware(
           [
-             'health_endpoint' => '/_health', // change if needed other endpoint
+             'leader_election_endpoint' => '/_health', // change if needed other endpoint
              'etcd_endpoint' => '<<etcd endpoint>>',
              'alection_frequency' => 5, // alection frequence in seconds
               <<inject you PSR7 logger if needed>>,
