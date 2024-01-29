@@ -8,7 +8,7 @@ trait WithLogger
 {
     private function error(string $identifier, string $message, array $context = [])
     {
-        if(null !== $this->logger) {
+        if(property_exists($this, 'logger') && null !== $this->logger) {
             $this
                 ->logger
                 ->error(
@@ -26,7 +26,7 @@ trait WithLogger
 
     private function info(string $identifier, string $message, array $context = [])
     {
-        if(null !== $this->logger) {
+        if(property_exists($this, 'logger') && null !== $this->logger) {
             $this
                 ->logger
                 ->info(
