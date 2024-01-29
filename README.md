@@ -9,7 +9,8 @@ A Slim 4 Framework useful middlewares.
 - settings setup;
 - exception handler;
 - APISIX auto route register;
-- Leader election middleware.
+- Leader election middleware;
+- Endpoint protection with X-Api-Token.
 
 ## Table of contents
 
@@ -20,6 +21,7 @@ A Slim 4 Framework useful middlewares.
 - [Exception handler usage](#exception handler usage)
 - [APISIX auto route register usage](#apisix auto route register usage)
 - [Leader election usage](#leader election usage)
+- [Endpoint protection with X-Api-Token usage](#endpoint protection with X-Api-Token usage)
 
 ## Install
 
@@ -294,4 +296,47 @@ protected function __invoke(ServerRequestInterface $request, ResponseInterface $
       // the leader code
    }
 }
+```
+
+## Endpoint protection with X-Api-Token usage
+
+Idea: Protect you endpoints like health check with Api token.
+
+Use [DI](https://www.slimframework.com/docs/v4/concepts/di.html) to inject the library Middleware classes:
+
+```php
+use BenyCode\Slim\Middleware\OnePathXApiTokenProtectionMiddleware;
+
+return [
+    ......
+    OnePathXApiTokenProtectionMiddleware::class => function (ContainerInterface $container) {
+       return new OnePathXApiTokenProtectionMiddleware(
+          [
+             'path' => '/_health', // change if needed other endpoint
+             'x-api-token' => '4bfdb81c03f42600d9018103a4df878b',
+              <<inject you PSR7 logger if needed>>,
+          ],
+        );
+    },
+    ......
+];
+```
+
+add the **Middleware** to `any` route at the end of the routes:
+
+```php
+use Slim\Exception\HttpNotFoundException;
+use BenyCode\Slim\Middleware\OnePathXApiTokenProtectionMiddleware;
+
+$app
+   ->get(
+   '/{any:.*}',
+   function (Request $request, Response $response) {
+      throw new HttpNotFoundException($request);
+   }
+   )
+   ....
+   ->add(OnePathXApiTokenProtectionMiddleware::class)
+   ->setName('any')
+   ;
 ```
