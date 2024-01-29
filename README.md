@@ -45,6 +45,7 @@ return [
            [
               'health_endpoint' => '/_health', // change if needed other endpoint
            ],
+           <<inject you PSR7 logger if needed>>,
         );
     },
     ......
