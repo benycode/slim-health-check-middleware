@@ -9,10 +9,13 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use BenyCode\Slim\Middleware\Traits\WithLogger;
  
 final class APISIXRegisterMiddleware implements MiddlewareInterface
 {
-    private string $healthEndpoint = '/_health';
+    use WithLogger;
+ 
+    private string $registerEndpoint = '/_health';
  
     public function __construct(
         private array $config = [],
@@ -46,14 +49,14 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
             ->getPath()
         ;
  
-        if(isset($this->config['health_endpoint'])) {
-            $this->healthEndpoint = $this->config['health_endpoint'];
+        if(isset($this->config['register_endpoint'])) {
+            $this->registerEndpoint = $this->config['register_endpoint'];
         }
  
-        if ($this->healthEndpoint === $uri) {
+        if ($this->registerEndpoint === $uri) {
  
             $this
-                ->info('APISIX registration procedure started.')
+                ->info($this->config['service_id'], 'APISIX service & route registration procedure started.')
             ;
  
             $leader = $request
@@ -63,7 +66,7 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
             if(true === $leader) {
  
                 $this
-                    ->info('I`m the leader. Lets register a route!.')
+                    ->info($this->config['service_id'], 'I`m a leader. Lets register a route!')
                 ;
  
                 $this
@@ -75,12 +78,12 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
                 ;
             } else {
                 $this
-                    ->info('I`m not the leader. Bye.')
+                    ->info($this->config['service_id'], 'I`m not a leader :(. Bye. I will back as soon as possible again.')
                 ;
             }
  
             $this
-                ->info('APISIX registration procedure ended.')
+                ->info($this->config['service_id'], 'APISIX service & route registration procedure ended.')
             ;
         }
  
@@ -91,7 +94,6 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
  
     private function createService(string $endpointSuffix = '/apisix/admin/services') : void
     {
- 
         $ch = \curl_init(
             \sprintf(
                 '%s%s/%s',
@@ -111,30 +113,30 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
         \curl_setopt($ch, CURLOPT_POSTFIELDS, \json_encode($this->config['service']));
  
         $this
-            ->info('creating service', $this->config['service'])
+            ->info($this->config['service_id'], 'creating service', $this->config['service'])
         ;
  
         $response = \curl_exec($ch);
  
         if (false === $response) {
             $this
-                ->error('route creation failed', ['cURL error' => (string)\curl_error($ch)])
+                ->error($this->config['service_id'], 'route creation failed', ['cURL error' => (string)\curl_error($ch)])
             ;
         } else {
  
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
  
             $this
-                ->info(\sprintf('APISIX responsed with code `%s`', $httpCode))
+                ->info($this->config['service_id'], \sprintf('APISIX responsed with code `%s`', $httpCode))
             ;
  
             if(200 === $httpCode) {
                 $this
-                    ->info('service successfully created/updated', ['response' => (string)$response])
+                    ->info($this->config['service_id'], 'service successfully created/updated', ['response' => (string)$response])
                 ;
             } else {
                 $this
-                    ->error('service creation failed', ['response' => (string)$response])
+                    ->error($this->config['service_id'], 'service creation failed', ['response' => (string)$response])
                 ;
             }
         }
@@ -163,7 +165,7 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
         ];
  
         $this
-            ->info('creating route', $data)
+            ->info($this->config['service_id'], 'creating route', $data)
         ;
  
         \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -175,47 +177,27 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
  
         if (false === $response) {
             $this
-                ->error('route creation failed', ['cURL error' => (string)\curl_error($ch)])
+                ->error($this->config['service_id'], 'route creation failed', ['cURL error' => (string)\curl_error($ch)])
             ;
         } else {
  
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
  
             $this
-                ->info(\sprintf('APISIX responsed with code `%s`', $httpCode))
+                ->info($this->config['service_id'], \sprintf('APISIX responsed with code `%s`', $httpCode))
             ;
  
             if(200 === $httpCode) {
                 $this
-                    ->info('route successfully created/updated', ['response' => (string)$response])
+                    ->info($this->config['service_id'], 'route successfully created/updated', ['response' => (string)$response])
                 ;
             } else {
                 $this
-                    ->error('route creation failed', ['response' => (string)$response])
+                    ->error($this->config['service_id'], 'route creation failed', ['response' => (string)$response])
                 ;
             }
         }
  
         \curl_close($ch);
-    }
- 
-    private function error(string $message, array $context = [])
-    {
-        if(null !== $this->logger) {
-            $this
-                ->logger
-                ->error(\sprintf('%s | %s', $this->config['service_id'], $message), $context)
-            ;
-        }
-    }
- 
-    private function info(string $message, array $context = [])
-    {
-        if(null !== $this->logger) {
-            $this
-                ->logger
-                ->info(\sprintf('%s | %s', $this->config['service_id'], $message), $context)
-            ;
-        }
     }
 }
