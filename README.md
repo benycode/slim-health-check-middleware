@@ -176,7 +176,7 @@ return [
     APISIXRegisterMiddleware::class => function (ContainerInterface $container) {
        return new APISIXRegisterMiddleware(
        [
-          'health_endpoint' => '/_health', // change if needed other endpoint
+          'register_endpoint' => '/_health', // change if needed other endpoint
           'service_id' => '<<describe your service name>>',
           'service' => [
              'upstream' => [
