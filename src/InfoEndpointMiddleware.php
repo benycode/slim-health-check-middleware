@@ -12,7 +12,10 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 final class InfoEndpointMiddleware implements MiddlewareInterface
 {
+    private string $infoEndpoint = '/_health';
+
     public function __construct(
+        private array $config = [],
         private string $version = 'not_defined',
     ) {
     }
@@ -24,7 +27,11 @@ final class InfoEndpointMiddleware implements MiddlewareInterface
             ->getPath()
         ;
 
-        if ('/_info' === $uri) {
+        if(isset($this->config['info_endpoint'])) {
+            $this->infoEndpoint = $this->config['info_endpoint'];
+        }
+
+        if ($this->infoEndpoint === $uri) {
             $response = new Response;
             $response
                 ->getBody()
