@@ -9,18 +9,19 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use BenyCode\Slim\Middleware\Traits\WithLogger;
  
 final class LeaderElectionMiddleware implements MiddlewareInterface
 {
+    use WithLogger;
+ 
     private string $idetifier;
  
-    private string $healthEndpoint = '/_health';
+    private string $leaderElectionEndpoint = '/_health';
  
     private string $etcdPreffix = 'slim-leader-election-middleware';
  
     private string $etcdLeaderKey = 'leader';
- 
-    private string $etcdFailoverKey = 'failover';
  
     public function __construct(
         private array $config = [],
@@ -58,26 +59,26 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
         \curl_setopt($ch, CURLOPT_POSTFIELDS, \json_encode($data));
  
         $this
-            ->info('checking leader', $data)
+            ->info('leader election', 'checking for the leader', $data)
         ;
  
         $response = \curl_exec($ch);
  
         if (false === $response) {
             $this
-                ->error('checking leader failed', ['cURL error' => (string)\curl_error($ch)])
+                ->error('leader election', 'checking leader failed', ['cURL error' => (string)\curl_error($ch)])
             ;
         } else {
  
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
  
             $this
-                ->info(\sprintf('ETCD responsed with code `%s`', $httpCode))
+                ->info('leader election', \sprintf('ETCD responsed with code `%s`', $httpCode))
             ;
  
             if(200 === $httpCode) {
                 $this
-                    ->info('leader successfully checked', ['response' => (string)$response])
+                    ->info('leader election', 'leader successfully checked', ['response' => (string)$response])
                 ;
  
                 \curl_close($ch);
@@ -91,7 +92,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
                 return '';
             } else {
                 $this
-                    ->error('leader check failed', ['response' => (string)$response])
+                    ->error('leader election', 'leader check failed', ['response' => (string)$response])
                 ;
             }
         }
@@ -124,26 +125,26 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
         \curl_setopt($ch, CURLOPT_POSTFIELDS, \json_encode($data));
  
         $this
-            ->info('creating leader', $data)
+            ->info('leader election', 'trying to be the leader', $data)
         ;
  
         $response = \curl_exec($ch);
  
         if (false === $response) {
             $this
-                ->error('leader creation failed', ['cURL error' => (string)\curl_error($ch)])
+                ->error('leader election', 'being a leader is unlucky', ['cURL error' => (string)\curl_error($ch)])
             ;
         } else {
  
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
  
             $this
-                ->info(\sprintf('ETCD responsed with code `%s`', $httpCode))
+                ->info('leader election', \sprintf('ETCD responsed with code `%s`', $httpCode))
             ;
  
             if(200 === $httpCode) {
                 $this
-                    ->info('leader successfully created', ['response' => (string)$response])
+                    ->info('leader election', 'being a leader is successfully confirmed. I`m the leader!', ['response' => (string)$response])
                 ;
  
                 \curl_close($ch);
@@ -151,7 +152,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
                 return true;
             } else {
                 $this
-                    ->error('leader creation failed', ['response' => (string)$response])
+                    ->error('leader election', 'being a leader is unlucky', ['response' => (string)$response])
                 ;
             }
         }
@@ -183,26 +184,26 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
         \curl_setopt($ch, CURLOPT_POSTFIELDS, \json_encode($data));
  
         $this
-            ->info('creating lease', $data)
+            ->info('leader election', 'I`m trying to prepare for leadership', $data)
         ;
  
         $response = \curl_exec($ch);
  
         if (false === $response) {
             $this
-                ->error('lease creation failed', ['cURL error' => (string)\curl_error($ch)])
+                ->error('leader election', 'failed to prepare for leadership', ['cURL error' => (string)\curl_error($ch)])
             ;
         } else {
  
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
  
             $this
-                ->info(\sprintf('ETCD responsed with code `%s`', $httpCode))
+                ->info('leader election', \sprintf('ETCD responsed with code `%s`', $httpCode))
             ;
  
             if(200 === $httpCode) {
                 $this
-                    ->info('lease successfully created', ['response' => (string)$response])
+                    ->info('leader election', 'leadership successfully prepared', ['response' => (string)$response])
                 ;
  
                 \curl_close($ch);
@@ -212,7 +213,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
                 return (int)$lease->ID;
             } else {
                 $this
-                    ->error('lease creation failed', ['response' => (string)$response])
+                    ->error('leader election', 'failed to prepare for leadership', ['response' => (string)$response])
                 ;
             }
         }
@@ -230,13 +231,13 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
         ;
  
         if(isset($this->config['health_endpoint'])) {
-            $this->healthEndpoint = $this->config['health_endpoint'];
+            $this->leaderElectionEndpoint = $this->config['leader_election_endpoint'];
         }
  
-        if ($this->healthEndpoint === $uri) {
+        if ($this->leaderElectionEndpoint === $uri) {
  
             $this
-                ->info('Leader election procedure started.')
+                ->info('leader election', 'Leader election procedure started.')
             ;
  
             $leader = $this
@@ -245,7 +246,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
  
             if(is_string($leader) && empty($leader)) {
                 $this
-                    ->info('Leader not found. I wanna be leader. OK?')
+                    ->info('leader election', 'Leader not found. I wanna be the leader. OK?')
                 ;
  
                 $leaseId = $this
@@ -266,7 +267,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
  
                 if($leader === $this->idetifier) {
                     $this
-                        ->info(\sprintf('Och, I`m the leader... I will back after %s seconds... Bye!', $this->config['alection_frequency']))
+                        ->info('leader election', \sprintf('Och, I`m the leader... I will back after %s seconds... Bye!', $this->config['alection_frequency']))
                     ;
  
                     $request = $request
@@ -275,7 +276,7 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
                 } else {
  
                     $this
-                        ->info(\sprintf('Leader was found. I will back after %s seconds... Bye!', $this->config['alection_frequency']))
+                        ->info('leader election', \sprintf('Leader was found. I will back after %s seconds... Bye!', $this->config['alection_frequency']))
                     ;
  
                     $request = $request
@@ -285,32 +286,12 @@ final class LeaderElectionMiddleware implements MiddlewareInterface
             }
  
             $this
-                ->info('Leader election procedure ended.')
+                ->info('leader election', 'Leader election procedure ended.')
             ;
         }
  
         return $handler
             ->handle($request)
         ;
-    }
- 
-    private function error(string $message, array $context = [])
-    {
-        if(null !== $this->logger) {
-            $this
-                ->logger
-                ->error(\sprintf('%s | %s', $this->idetifier, $message), $context)
-            ;
-        }
-    }
- 
-    private function info(string $message, array $context = [])
-    {
-        if(null !== $this->logger) {
-            $this
-                ->logger
-                ->info(\sprintf('%s | %s', $this->idetifier, $message), $context)
-            ;
-        }
     }
 }
