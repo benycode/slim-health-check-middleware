@@ -313,7 +313,7 @@ return [
        return new OnePathXApiTokenProtectionMiddleware(
           [
              'path' => '/_health', // change if needed other endpoint
-             'x-api-token' => '4bfdb81c03f42600d9018103a4df878b',
+             'x-api-token' => '4bfdb81c03f42600d9018103a4df878b', // change to yours
               <<inject you PSR7 logger if needed>>,
           ],
         );
