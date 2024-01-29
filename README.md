@@ -86,7 +86,12 @@ use BenyCode\Slim\Middleware\InfoEndpointMiddleware;
 return [
     ......
     InfoEndpointMiddleware::class => function (ContainerInterface $container) {
-        return new InfoEndpointMiddleware(<<inject version var>>);
+        return new InfoEndpointMiddleware(
+           [
+              'info_endpoint' => '/_info', // change if needed other endpoint
+           ],
+           '<<define api version here>>', // example: v0.0.0
+        );
     },
     ......
 ];
