@@ -56,7 +56,7 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
         if ($this->registerEndpoint === $uri) {
  
             $this
-                ->info($this->config['service_id'], 'APISIX service & route registration procedure started.')
+                ->info($this->config['service_id'], 'APISIX service & route (re)registration procedure started.')
             ;
  
             $leader = $request
@@ -83,7 +83,7 @@ final class APISIXRegisterMiddleware implements MiddlewareInterface
             }
  
             $this
-                ->info($this->config['service_id'], 'APISIX service & route registration procedure ended.')
+                ->info($this->config['service_id'], 'APISIX service & route (re)registration procedure ended.')
             ;
         }
  
